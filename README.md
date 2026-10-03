@@ -144,7 +144,7 @@ Checked on 2026-10-04 on Windows 11 with Node 24, against synthetic transcripts 
 - **The example page** was opened once in a browser pane: the filter, the thinking and expand switches, the theme switch, a phone width of 375 pixels with no horizontal scroll, and no console errors.
 - **The plugin**: `claude plugin validate .claude-plugin/plugin.json` and `claude plugin validate .` both pass with Claude Code 2.1.286.
 
-Not verified yet: exports of real sessions. The linking of a subagent's transcript to its call follows the result's `agentId` and falls back to matching the first prompt, which is an assumption about the format. Not run: CI on Linux and macOS and on Node 20 and 22, and any Node 18 (the code avoids newer APIs, and a test looks for them). The `open` command was not run, so a browser was never started by a test; the command it would run for each system is tested. The print layout was not looked at in a print preview, and `/replay:replay` was not run inside a live Claude Code session.
+Not verified yet: exports of real sessions. The linking of a subagent's transcript to its call follows the result's `agentId` and falls back to matching the first prompt, which is an assumption about the format. CI runs every test on Windows, macOS and Linux with Node 20, 22 and 24, all green. Not run: Node 18 (the code avoids newer APIs, and a test looks for them). The `open` command was not run, so a browser was never started by a test; the command it would run for each system is tested. The print layout was not looked at in a print preview, and `/replay:replay` was not run inside a live Claude Code session.
 
 ## Files
 
