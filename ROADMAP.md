@@ -4,4 +4,4 @@ What could come next. None of it is promised; all of it is open to contributors.
 
 - Compare two sessions side by side.
 - A `--since` filter for `list` and `search`.
-- A print stylesheet checked in a print preview.
+- Check the print stylesheet in real print previews (Chrome, Firefox, Safari) and fix what breaks.
