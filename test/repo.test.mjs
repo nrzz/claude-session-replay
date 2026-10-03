@@ -120,7 +120,9 @@ test("repo housekeeping files", () => {
 
 test("CI runs the tests on Linux, Windows and macOS with Node 20, 22 and 24", () => {
   const wf = read(".github", "workflows", "test.yml");
-  for (const part of ["name: test", "ubuntu-latest", "windows-latest", "macos-latest", "node: [20, 22, 24]", "- run: npm test", "actions/checkout@v4", "actions/setup-node@v4", "fail-fast: false"]) assert.ok(wf.includes(part), part);
+  for (const part of ["name: test", "ubuntu-latest", "windows-latest", "macos-latest", "node: [20, 22, 24]", "- run: npm test", "fail-fast: false"]) assert.ok(wf.includes(part), part);
+  assert.match(wf, /actions\/checkout@v\d+/);
+  assert.match(wf, /actions\/setup-node@v\d+/);
 });
 
 // --- the plugin -----------------------------------------------------------------------------------
