@@ -1,0 +1,10 @@
+{
+  "name": "replay",
+  "version": "1.0.0",
+  "description": "Export this Claude Code session as a self-contained HTML replay, with secrets redacted, using /replay:replay. The same tool searches, lists and exports any past session from a terminal at no token cost.",
+  "author": { "name": "Naresh Prabu" },
+  "homepage": "https://github.com/nrzz/claude-session-replay",
+  "repository": "https://github.com/nrzz/claude-session-replay",
+  "license": "MIT",
+  "keywords": ["session", "transcript", "replay", "search", "export", "html", "markdown", "code-review", "productivity"]
+}

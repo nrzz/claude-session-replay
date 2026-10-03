@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-session-replay",
+  "description": "Find anything you discussed in any past Claude Code session, and turn a session into a self-contained HTML replay or Markdown for docs, demos, code reviews and bug reports.",
+  "owner": {
+    "name": "Naresh Prabu"
+  },
+  "plugins": [
+    {
+      "name": "replay",
+      "description": "Export this session as a self-contained HTML replay with secrets redacted (/replay:replay). The claude-replay command also searches, lists and exports any past session, at no token cost.",
+      "author": { "name": "Naresh Prabu" },
+      "category": "productivity",
+      "source": "./",
+      "homepage": "https://github.com/nrzz/claude-session-replay"
+    }
+  ]
+}

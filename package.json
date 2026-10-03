@@ -1,0 +1,42 @@
+{
+  "name": "claude-session-replay",
+  "version": "1.0.0",
+  "description": "Find anything you discussed in any past Claude Code session, and turn a session into a self-contained HTML replay or Markdown for docs, demos, code reviews and bug reports.",
+  "type": "module",
+  "bin": {
+    "claude-replay": "bin/claude-replay.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    ".claude-plugin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "build:example": "node scripts/build-example.mjs"
+  },
+  "repository": "github:nrzz/claude-session-replay",
+  "homepage": "https://github.com/nrzz/claude-session-replay#readme",
+  "bugs": "https://github.com/nrzz/claude-session-replay/issues",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "session",
+    "transcript",
+    "replay",
+    "search",
+    "export",
+    "html",
+    "markdown",
+    "code-review"
+  ],
+  "author": "Naresh Prabu",
+  "license": "MIT"
+}
