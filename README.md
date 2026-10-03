@@ -1,6 +1,6 @@
 # Claude session replay
 
-[![test](https://github.com/nrzz/claude-session-replay/actions/workflows/test.yml/badge.svg)](https://github.com/nrzz/claude-session-replay/actions/workflows/test.yml)
+[![test](https://github.com/nrzz/claude-session-replay/actions/workflows/test.yml/badge.svg)](https://github.com/nrzz/claude-session-replay/actions/workflows/test.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![node >= 18](https://img.shields.io/badge/node-%3E%3D18-339933.svg) ![dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg) [![part of the Claude Code toolkit](https://img.shields.io/badge/Claude%20Code-toolkit-d97757.svg)](https://github.com/nrzz/claude-code-toolkit)
 
 Find anything you discussed in any past Claude Code session, and turn a session into a single-file HTML replay or a Markdown transcript for docs, demos, code reviews and bug reports. It runs outside Claude Code as one zero-dependency Node command, so it costs no tokens, and it never sends a transcript anywhere.
 
@@ -167,6 +167,23 @@ Not verified yet: exports of real sessions. The linking of a subagent's transcri
 | `docs/example.html` | The example replay |
 
 Related: [claude-code-handover](https://github.com/nrzz/claude-code-handover) keeps your own sessions short, and [claude-code-team-sync](https://github.com/nrzz/claude-code-team-sync) shares sessions with a team. A replay is what you attach when a session needs to be seen by someone who was not in it.
+
+## Contributing
+
+Issues and pull requests are welcome: start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [good first issues](https://github.com/nrzz/claude-session-replay/issues?q=is%3Aopen+label%3A%22good+first+issue%22). Questions go to [Discussions](https://github.com/nrzz/claude-session-replay/discussions); security reports go through [SECURITY.md](SECURITY.md).
+
+## Part of the Claude Code toolkit
+
+Small, dependency-free tools that make Claude Code cheaper, safer and easier to share, all in the [Claude Code toolkit](https://github.com/nrzz/claude-code-toolkit):
+
+- [claude-code-handover](https://github.com/nrzz/claude-code-handover): short sessions with a handover file every new session loads by itself
+- [claude-code-team-sync](https://github.com/nrzz/claude-code-team-sync): share sessions, notes and team context with coworkers
+- [claude-code-glow](https://github.com/nrzz/claude-code-glow): themes for the whole interface, a status line and a live HUD
+- [claude-code-guardrails](https://github.com/nrzz/claude-code-guardrails): safety presets that stop risky commands and edits
+- [claude-code-notify](https://github.com/nrzz/claude-code-notify): a ping when Claude needs you or finishes
+- [claude-md-doctor](https://github.com/nrzz/claude-md-doctor): what your CLAUDE.md costs every session, and how to slim it
+- [claude-code-starter-kits](https://github.com/nrzz/claude-code-starter-kits): a lean, safe .claude/ for your stack in one command
+- [claude-cost-guard](https://github.com/nrzz/claude-cost-guard): daily and weekly token budgets with zero-token warnings
 
 ## License
 

@@ -165,8 +165,8 @@ const readme = read("README.md");
 
 test("README follows the family template, in order", () => {
   const headings = [...readme.matchAll(/^## (.*)$/gm)].map((m) => m[1]);
-  assert.deepEqual(headings.slice(0, 9), ["What it costs in tokens", "Install", "Use", "What the HTML replay shows", "Privacy and redaction", "How it works", "What was verified, and how", "Files", "License"]);
-  assert.match(readme, /^# Claude session replay\n\n\[!\[test\]\(https:\/\/github\.com\/nrzz\/claude-session-replay\/actions\/workflows\/test\.yml\/badge\.svg\)\]\(https:\/\/github\.com\/nrzz\/claude-session-replay\/actions\/workflows\/test\.yml\)\n\n/);
+  assert.deepEqual(headings, ["What it costs in tokens", "Install", "Use", "What the HTML replay shows", "Privacy and redaction", "How it works", "What was verified, and how", "Files", "Contributing", "Part of the Claude Code toolkit", "License"]);
+  assert.match(readme, /^# Claude session replay\n\n\[!\[test\]\(https:\/\/github\.com\/nrzz\/claude-session-replay\/actions\/workflows\/test\.yml\/badge\.svg\)\]\(https:\/\/github\.com\/nrzz\/claude-session-replay\/actions\/workflows\/test\.yml\)[^\n]*\n\n/);
 });
 
 test("README: two-sentence intro, install commands, a token table, no emoji", () => {
