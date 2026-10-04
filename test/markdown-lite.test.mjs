@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { countOf, parseHtml } from "./helpers.mjs";
+import { countOf, cpuMs, parseHtml } from "./helpers.mjs";
 import { codeBlock, highlight, inline, languageOf, markdownToHtml, plainToHtml, readFence } from "../src/markdown-lite.mjs";
 
 const md = (s) => markdownToHtml(s).html;
@@ -216,14 +216,12 @@ test("pathological input finishes quickly", () => {
     parens: `${"(".repeat(40000)}https://x.y/${")".repeat(40000)}`, links: "[a](b ".repeat(20000), words: "word ".repeat(200000),
   };
   for (const [name, text] of Object.entries(cases)) {
-    const t0 = Date.now();
-    markdownToHtml(text);
-    assert.ok(Date.now() - t0 < 5000, `${name} took ${Date.now() - t0} ms`);
+    const { ms } = cpuMs(() => markdownToHtml(text));
+    assert.ok(ms < 5000, `${name} took ${ms} ms of CPU`);
   }
   for (const [name, text, lang] of [["quotes", '"'.repeat(100000), "js"], ["comments", "/*".repeat(50000), "js"], ["ticks", "`".repeat(100000), "js"], ["apostrophes", "'".repeat(100000), "py"]]) {
-    const t0 = Date.now();
-    highlight(text, lang);
-    assert.ok(Date.now() - t0 < 5000, `${name} took ${Date.now() - t0} ms`);
+    const { ms } = cpuMs(() => highlight(text, lang));
+    assert.ok(ms < 5000, `${name} took ${ms} ms of CPU`);
   }
 });
 

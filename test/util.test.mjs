@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { tmpDir } from "./helpers.mjs";
+import { cpuMs, tmpDir } from "./helpers.mjs";
 import { baseName, capText, cleanText, compact, forEachLine, kb, makeColors, num, oneLine, plural, utcDay, utcMinute, utcStamp, utcTime } from "../src/util.mjs";
 import { parseArgs, parseMaxOutput } from "../src/cli.mjs";
 import { UserError } from "../src/util.mjs";
@@ -54,9 +54,9 @@ test("cleanText removes colour codes, bidi overrides and control characters, kee
 
 test("cleanText is fast on a huge line with carriage returns", () => {
   const big = "x".repeat(2_000_000) + "\r" + "y".repeat(2_000_000);
-  const t0 = Date.now();
-  assert.equal(cleanText(big).length, 2_000_000);
-  assert.ok(Date.now() - t0 < 2000);
+  const { result, ms } = cpuMs(() => cleanText(big));
+  assert.equal(result.length, 2_000_000);
+  assert.ok(ms < 2000, `${ms} ms of CPU`);
 });
 
 test("capText keeps the start and the end and says how much it dropped", () => {

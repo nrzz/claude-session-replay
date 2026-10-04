@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import "./helpers.mjs";
+import { cpuMs } from "./helpers.mjs";
 import { diffLines, diffStats } from "../src/diff.mjs";
 
 // Rebuilds both texts from a diff made without folding.
@@ -68,19 +68,17 @@ test("random edits: removed and unchanged lines rebuild the old text, added and 
 test("a large file with a few changes is diffed exactly and fast", () => {
   const a = Array.from({ length: 2000 }, (_, i) => `line ${i}`).join("\n");
   const b = Array.from({ length: 2000 }, (_, i) => (i % 50 === 0 ? `changed ${i}` : `line ${i}`)).join("\n");
-  const t0 = Date.now();
-  const stats = diffStats(diffLines(a, b));
+  const { result: stats, ms } = cpuMs(() => diffStats(diffLines(a, b)));
   assert.deepEqual(stats, { added: 40, removed: 40 });
-  assert.ok(Date.now() - t0 < 1000);
+  assert.ok(ms < 1000, `${ms} ms of CPU`);
 });
 
 test("texts that share almost nothing fall back to remove-all, add-all instead of running away", () => {
   const a = Array.from({ length: 1500 }, (_, i) => `old ${i}`).join("\n");
   const b = Array.from({ length: 1500 }, (_, i) => `new ${i}`).join("\n");
-  const t0 = Date.now();
-  const ops = diffLines(a, b);
+  const { result: ops, ms } = cpuMs(() => diffLines(a, b));
   assert.deepEqual(diffStats(ops), { added: 1500, removed: 1500 });
-  assert.ok(Date.now() - t0 < 2000);
+  assert.ok(ms < 2000, `${ms} ms of CPU`);
 });
 
 test("a trailing newline is a line like any other", () => {

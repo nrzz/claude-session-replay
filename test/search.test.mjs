@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { Transcript, world, richSession, simpleSession, run, uuid } from "./helpers.mjs";
+import { Transcript, cpuMs, world, richSession, simpleSession, run, uuid } from "./helpers.mjs";
 import { findSessions } from "../src/claude.mjs";
 import { makeSnippet, markWords, parseWords, searchFile, searchSessions } from "../src/search.mjs";
 
@@ -249,7 +249,7 @@ test("a search over 300 synthetic sessions is quick", async () => {
   }
   const entries = findSessions({ env: w.env, root });
   assert.equal(entries.length, 300);
-  const timed = (words, deep = false) => { const t0 = Date.now(); const hits = searchSessions(entries, words, { deep }); return { hits, ms: Date.now() - t0 }; };
+  const timed = (words, deep = false) => { const { result: hits, ms } = cpuMs(() => searchSessions(entries, words, { deep })); return { hits, ms: Math.round(ms) }; };
   const rare = timed(["zebra-quagga"]);
   assert.equal(rare.hits.length, 3);
   const common = timed(["billing", "module"]);
@@ -275,10 +275,9 @@ test("a very large session is streamed, not loaded: a word near its end is found
   fs.writeSync(fd, JSON.stringify({ type: "assistant", timestamp: "2026-10-02T00:00:00.000Z", message: { content: [{ type: "text", text: "the final answer mentions pomegranate" }] } }) + "\n");
   fs.closeSync(fd);
   assert.ok(fs.statSync(written.file).size > 40_000_000 && dir);
-  const t0 = Date.now();
-  const hits = searchSessions(findSessions({ env: w.env, root }), ["pomegranate"]);
+  const { result: hits, ms } = cpuMs(() => searchSessions(findSessions({ env: w.env, root }), ["pomegranate"]));
   assert.equal(hits.length, 1);
-  assert.ok(Date.now() - t0 < 10000);
+  assert.ok(ms < 10000, `${ms} ms of CPU`);
 });
 
 test("the list of sessions is not the place a search looks beyond: unreadable files are skipped", () => {

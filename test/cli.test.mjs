@@ -365,7 +365,9 @@ test("an unexpected failure is exit code 2 with the details, a user error is exi
   assert.equal(code, 2);
   assert.match(unexpected.join(""), /unexpected error: Error: boom/);
   const user = [];
-  assert.equal(await main(["export", "zz"], { cwd: w.base, env: w.env, out() {}, err: (s) => user.push(s) }), 1);
+  // An empty world: no session can match, whatever the temp folder is called (on macOS it can be /var/folders/zz/...).
+  const empty = world("cli-empty");
+  assert.equal(await main(["export", "zz"], { cwd: empty.base, env: empty.env, out() {}, err: (s) => user.push(s) }), 1);
   assert.ok(!user.join("").includes("    at "), "no stack trace for a user error");
 });
 

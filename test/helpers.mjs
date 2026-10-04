@@ -26,6 +26,18 @@ export function tmpDir(prefix = "cr-") {
 }
 process.on("exit", () => { for (const d of made) { try { fs.rmSync(d, { recursive: true, force: true }); } catch { /* best effort */ } } });
 
+/**
+ * Runs fn and returns { result, ms }, where ms is the CPU time (user and system) it used. Speed tests use it
+ * instead of the wall clock: a busy CI machine running other test files makes the clock jump by seconds, but
+ * not the CPU time of the work itself, which is what a slow algorithm drives up.
+ */
+export function cpuMs(fn) {
+  const start = process.cpuUsage();
+  const result = fn();
+  const used = process.cpuUsage(start);
+  return { result, ms: (used.user + used.system) / 1000 };
+}
+
 // The guard: an empty home and config folder for this process.
 const guard = tmpDir("cr-guard-");
 process.env.HOME = guard;
