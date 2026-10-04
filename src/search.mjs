@@ -9,7 +9,7 @@
 // call, and (deep) in output; words that appear together in one message add a bonus; the number of
 // occurrences adds a little. Equal scores go to the more recent session.
 import { classifyUser, promptOf, titleRecord } from "./claude.mjs";
-import { cmp, escapeRegExp, forEachLine, oneLine, tryParse } from "./util.mjs";
+import { cleanText, cmp, escapeRegExp, forEachLine, oneLine, tryParse } from "./util.mjs";
 
 const WEIGHT = { title: 12, you: 5, claude: 3, tool: 2, output: 1 };
 const MAX_WORDS = 12;
@@ -76,7 +76,7 @@ function countOf(lower, word, cap = 20) {
 
 // A short piece of text around the words, cut at word boundaries, with … where it was cut.
 export function makeSnippet(text, words, width = 160) {
-  const flat = String(text).replace(/\s+/g, " ").trim();
+  const flat = cleanText(String(text)).replace(/\s+/g, " ").trim();
   const lower = flat.toLowerCase();
   const found = words.map((w) => lower.indexOf(w)).filter((p) => p >= 0).sort((a, b) => a - b);
   if (!found.length) return oneLine(flat, width);

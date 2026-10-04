@@ -35,13 +35,16 @@ export const SECRET_RULES = [
 // Label-and-value rules: group 1 (the label) is kept, group 2 (the value) is replaced.
 export const VALUE_RULES = [
   ["bearer-token", /(\bBearer\s+)([A-Za-z0-9._~+/-]{20,}=*)/g],
-  ["url-password", /(\b[a-z][a-z0-9+.-]*:\/\/[^\s:@/"'`]+:)([^\s@/"'`]+)(?=@)/gi],
+  ["url-password", /(\b[a-z][a-z0-9+.-]*:\/\/[^\s:@/"'`]*:)([^\s@/"'`]+)(?=@)/gi],
   ["aws-secret", /(aws_secret_access_key["']?\s*[:=]\s*["']?)([A-Za-z0-9/+=]{40})/gi],
   ["azure-key", /((?:AccountKey|SharedAccessKey)\s*=\s*)([A-Za-z0-9+/=]{20,})/gi],
   ["connection-password", /((?:^|[;"'])\s*(?:Password|Pwd)=)([^;'"\s]{2,})/gim],
   ["env-secret", /^(\s*(?:export\s+)?[A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API_KEY|APIKEY|PRIVATE_KEY|ACCESS_KEY)[A-Z0-9_]*\s*=\s*["']?)([^\s"'#]{4,})/gm],
-  ["assigned-secret", /(\b(?:password|passwd|secret|client_secret|api_?key|access_?token|auth_?token|refresh_?token)["']?\s*[:=]\s*["'])([^"'\s]{6,})(?=["'])/gi],
+  ["assigned-secret", /(\b(?:password|passwd|secret|client_secret|api_?key|access_?token|auth_?token|refresh_?token|token)["']?\s*[:=]\s*["'])([^"'\s]{6,})(?=["'])/gi],
 ];
+// A field whose name says it holds a secret: its whole value is replaced (tool inputs are shown as
+// name and value, so the label-and-value rules above never see the two together).
+export const SECRET_KEY = /^(?:.*[_-])?(?:password|passwd|pwd|secret|client_secret|secret_?key|token|api_?key|apikey|private_?key|access_?key|authorization|credentials?)$/i;
 // Values that are obviously not secrets: placeholders, template references, type names.
 export const PLACEHOLDER_VALUE = /^(?:x+|\*+|\.+|changeme|change_me|password|secret|null|none|undefined|example[\w-]*|dummy[\w-]*|test\w{0,4}|your[\w-]*|<[^>]*>|\$\{[^}]*\}|\$[A-Z_]+|%[A-Z_]+%|\[REDACTED[^\]]*\]?)$/i;
 
@@ -171,12 +174,18 @@ export function makeDisplay({ redact = false, root = "", home = "", slug = "", t
     if (redactor) out = redactor(out, counts.secrets);
     return toPaths(out);
   };
-  const deep = (v) => {
-    if (typeof v === "string") return text(v);
-    if (Array.isArray(v)) return v.map(deep);
+  const deep = (v, key = "") => {
+    if (typeof v === "string") {
+      if (redactor && key && SECRET_KEY.test(key) && v.trim().length >= 4 && !PLACEHOLDER_VALUE.test(v.trim())) {
+        bump(counts.secrets, "named-secret");
+        return "[REDACTED:named-secret]";
+      }
+      return text(v);
+    }
+    if (Array.isArray(v)) return v.map((x) => deep(x, key));
     if (v && typeof v === "object") {
       const o = {};
-      for (const [k, x] of Object.entries(v)) o[k] = deep(x);
+      for (const [k, x] of Object.entries(v)) o[k] = deep(x, k);
       return o;
     }
     return v;

@@ -26,6 +26,7 @@ test("numbers: thousands separators, compact token counts, sizes", () => {
 test("text: one line, base names in either spelling", () => {
   assert.equal(oneLine("a\n  b\t c", 50), "a b c");
   assert.equal(oneLine("x".repeat(30), 10), "xxxxxxxxx…");
+  assert.equal(oneLine("ti\u001b[2Jtle‮ end\u0007"), "title end", "a title cannot drive the terminal it is printed in");
   assert.equal(baseName("C:\\Users\\me\\proj\\"), "proj");
   assert.equal(baseName("/home/me/proj"), "proj");
   assert.equal(baseName(""), "");

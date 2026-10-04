@@ -126,7 +126,7 @@ test("print styles: no toolbar, wrapping code, light colours, page breaks kept t
 });
 
 test("the footer says it is a single file and shows the version, with no date so exports repeat exactly", () => {
-  assert.match(html, /<footer>Exported with claude-replay 1\.0\.0 \(github\.com\/nrzz\/claude-session-replay\)\. A single file/);
+  assert.match(html, /<footer>Exported with claude-replay 1\.0\.1 \(github\.com\/nrzz\/claude-session-replay\)\. A single file/);
   assert.equal(replayFile(rich.file, base).text, html, "the same session exports to the same bytes");
 });
 
@@ -238,6 +238,39 @@ test("Claude's text is rendered: headings, lists, code, tables, quotes, safe lin
   assert.match(html, /<blockquote><p>quoted line<\/p><\/blockquote>/);
   assert.match(html, /<a href="https:\/\/example\.com\/docs\?a=1&amp;b=2" rel="noopener noreferrer" target="_blank">the docs<\/a>/);
   assert.ok(html.includes('bad <span class="dim">(javascript:alert(1))</span>'));
+});
+
+test("--redact replaces secrets in the name and value rows of any tool's input", () => {
+  const root = w.project("creds");
+  const t = new Transcript({ id: "77777777-2222-4333-8444-555555555555", seed: "creds", cwd: root, branch: "main", start: "2026-10-01T12:00:00.000Z" });
+  t.prompt("connect to the database");
+  const values = { password: "hunter2hunter2", api_key: "abcd1234efgh5678", token: "tok_abcdef123456", db_password: "s3cr3t-pass", query: "select 1" };
+  t.run("mcp__db__query", values, "1 row");
+  t.say("done");
+  const { file } = t.write(w.claude);
+  const plain = replayFile(file, base).text;
+  assert.ok(plain.includes("hunter2hunter2"), "without --redact the values are shown as recorded");
+  const htmlOut = replayFile(file, { ...base, redact: true }).text;
+  const mdOut = replayFile(file, { ...base, redact: true, format: "md" }).text;
+  for (const out of [htmlOut, mdOut]) {
+    for (const secret of ["hunter2hunter2", "abcd1234efgh5678", "tok_abcdef123456", "s3cr3t-pass"]) assert.equal(out.includes(secret), false, secret);
+    assert.ok(out.includes("REDACTED:named-secret"), "the one-line summary is redacted by field name too");
+  }
+  assert.ok(htmlOut.includes("<dd>select 1</dd>"), "a field that is not a secret is kept");
+});
+
+test("control codes and text-direction overrides are removed from the header's names too", () => {
+  const evil = "‮evil\u001b[31m";
+  const t = new Transcript({ id: "88888888-2222-4333-8444-555555555555", seed: "names", cwd: `${w.project("names")}${evil}`, branch: "main", version: `2.1.286${evil}`, model: `claude-opus-5-5${evil}`, start: "2026-10-01T12:00:00.000Z" });
+  t.prompt("hello there");
+  t.say("hi");
+  t.compact({ trigger: `auto${evil}`, preTokens: 1000 });
+  t.say("after");
+  const { file } = t.write(w.claude);
+  for (const out of [replayFile(file, base).text, replayFile(file, { ...base, format: "md" }).text]) {
+    assert.equal(/[‪-‮⁦-⁩\u001b]/.test(out), false, "no override or escape character survives");
+    assert.ok(out.includes("claude-opus-5-5evil"), "the model name is kept, cleaned");
+  }
 });
 
 test("the home folder is shown as ~ even without --redact, and nothing else is changed", () => {

@@ -63,6 +63,23 @@ test("redaction counts what it replaced, by kind", () => {
   assert.equal((out.match(/\[REDACTED:/g) || []).length, 3);
 });
 
+test("a key named token, and a URL password with no user name, are redacted too", () => {
+  const r = makeRedactor();
+  const tokenLine = `token: "abcdef123456"`;
+  assert.equal(r(tokenLine), `token: "[REDACTED:assigned-secret]"`);
+  assert.equal(r(`{"token": "abcdef123456"}`), `{"token": "[REDACTED:assigned-secret]"}`);
+  assert.equal(r("redis://:s3cretpw@cache:6379/0"), "redis://:[REDACTED:url-password]@cache:6379/0");
+  assert.equal(r("http://example.com:8080/path"), "http://example.com:8080/path", "a port is not a password");
+});
+
+test("display.deep replaces a whole value whose field name says it is a secret, placeholders excepted", () => {
+  const d = makeDisplay({ redact: true });
+  const out = d.deep({ password: "hunter2hunter2", stripe_secret_key: "abc12345", authorization: "Basic dXNlcjpwYXNz", token: "${TOKEN}", user: "alice", nested: { client_secret: "zzzz9999" } });
+  assert.deepEqual(out, { password: "[REDACTED:named-secret]", stripe_secret_key: "[REDACTED:named-secret]", authorization: "[REDACTED:named-secret]", token: "${TOKEN}", user: "alice", nested: { client_secret: "[REDACTED:named-secret]" } });
+  assert.equal(d.counts.secrets["named-secret"], 4);
+  assert.deepEqual(makeDisplay({ redact: false }).deep({ password: "hunter2hunter2" }), { password: "hunter2hunter2" }, "only with --redact");
+});
+
 test("custom redaction patterns apply, and a bad pattern is skipped", () => {
   assert.equal(makeRedactor(["ACME-[0-9]{6}", "("])("ticket ACME-123456 opened", {}), "ticket [REDACTED:custom] opened");
 });

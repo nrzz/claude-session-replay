@@ -33,8 +33,10 @@ export function kb(bytes) {
   return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
+// One line of text for a terminal or a summary: control codes, colour sequences and text-direction
+// overrides go first, so a crafted session title cannot drive the terminal it is printed in.
 export function oneLine(s, max = 200) {
-  const t = String(s ?? "").replace(/\s+/g, " ").trim();
+  const t = cleanText(String(s ?? "")).replace(/\s+/g, " ").trim();
   return t.length > max ? t.slice(0, max - 1).replace(/[\ud800-\udbff]$/, "") + "…" : t;
 }
 

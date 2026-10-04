@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { classifyText, classifyUser, homeDir, pickTitle, promptOf, quickMeta, titleRecord } from "./claude.mjs";
 import { makeDisplay, relPath } from "./redact.mjs";
-import { baseName, capText, forEachLine, listDir, oneLine, tryParse, UserError } from "./util.mjs";
+import { baseName, capText, cleanText, forEachLine, listDir, oneLine, tryParse, UserError } from "./util.mjs";
 
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
@@ -76,7 +76,7 @@ export class SessionBuilder {
   system(rec) {
     if (rec.subtype === "compact_boundary" || rec.compactMetadata) {
       const meta = rec.compactMetadata || {};
-      this.turns.push({ type: "compact", ts: validIso(rec.timestamp), trigger: String(meta.trigger || ""), preTokens: Number(meta.preTokens) || 0 });
+      this.turns.push({ type: "compact", ts: validIso(rec.timestamp), trigger: cleanText(String(meta.trigger || "")).slice(0, 40), preTokens: Number(meta.preTokens) || 0 });
       this.cur = null;
       return;
     }
@@ -189,8 +189,9 @@ export class SessionBuilder {
     const key = msg.id || rec.uuid || "";
     if (key) { this.cur.messageIds.add(key); this.noteUsage(key, msg.usage); }
     if (typeof msg.model === "string" && msg.model && !msg.model.startsWith("<")) {
-      this.models.add(msg.model);
-      this.cur.model ||= msg.model;
+      const model = cleanText(msg.model).slice(0, 80);
+      this.models.add(model);
+      this.cur.model ||= model;
     }
     const content = Array.isArray(msg.content) ? msg.content : typeof msg.content === "string" ? [{ type: "text", text: msg.content }] : [];
     for (const b of content) this.block(rec, b);
@@ -262,8 +263,10 @@ export class SessionBuilder {
       case "Skill": r = { kind: "other", detail: short(`${input.skill ?? ""} ${input.args ?? ""}`, 120), code: true }; break;
       default: {
         const mcp = /^mcp__(.+?)__(.+)$/.exec(name);
-        if (mcp) r = { kind: "mcp", label: "MCP", detail: `${t(mcp[1])} › ${t(mcp[2])} ${short(JSON.stringify(input), 100)}`.trim(), code: false };
-        else r = { kind: "other", detail: short(JSON.stringify(input), 140), code: false };
+        // deep() first, so a field named like a secret (db_password, api_key ...) is redacted here too.
+        const shown = JSON.stringify(this.d.deep(input));
+        if (mcp) r = { kind: "mcp", label: "MCP", detail: `${t(mcp[1])} › ${t(mcp[2])} ${short(shown, 100)}`.trim(), code: false };
+        else r = { kind: "other", detail: short(shown, 140), code: false };
       }
     }
     return { kind: r.kind, label: t(r.label || name), detail: r.detail, code: r.code, where: r.where || "" };
@@ -342,9 +345,9 @@ export class SessionBuilder {
     return {
       id,
       title: pickTitle(titles, this.d.text(this.firstPrompt)),
-      project: baseName(this.info.cwd),
+      project: cleanText(baseName(this.info.cwd)),
       branch: this.d.text(this.info.branch),
-      version: this.info.version,
+      version: this.info.version ? cleanText(String(this.info.version)).slice(0, 40) : this.info.version,
       models: [...this.models],
       started: this.info.started,
       ended: this.info.ended,
