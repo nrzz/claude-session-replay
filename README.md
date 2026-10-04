@@ -185,6 +185,8 @@ Small, dependency-free tools that make Claude Code cheaper, safer and easier to 
 - [claude-code-starter-kits](https://github.com/nrzz/claude-code-starter-kits): a lean, safe .claude/ for your stack in one command
 - [claude-cost-guard](https://github.com/nrzz/claude-cost-guard): daily and weekly token budgets with zero-token warnings
 
+Set up any of them, or all of them, from one page: `npx -y github:nrzz/claude-code-toolkit` opens it with the recommended tools switched on.
+
 ## License
 
 MIT
