@@ -26,7 +26,7 @@ const outsideFences = (text) => {
 test("the export opens with the title and a line of facts", () => {
   assert.ok(md.startsWith("# Fix login redirect loop\n\n_Claude Code session `11111111` · project `webapp` · branch `fix/login` · 2026-10-01 12:00 → 2026-10-02 "));
   assert.match(md, /· 5 prompts · 15 tool calls · \d+K tokens · `claude-opus-5-5`_\n/);
-  assert.ok(md.trimEnd().endsWith("_Exported with claude-replay 1.0.1._"));
+  assert.ok(md.trimEnd().endsWith("_Exported with claude-replay 1.0.2._"));
   assert.ok(md.endsWith("\n"));
 });
 

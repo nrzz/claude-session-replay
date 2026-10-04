@@ -2,7 +2,7 @@
 name: replay
 description: Export this session as a shareable HTML replay.
 disable-model-invocation: true
-allowed-tools: Bash(node *)
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs" *) Bash(node ${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs *)
 ---
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs" export ${CLAUDE_SESSION_ID} --redact --out "${CLAUDE_PROJECT_DIR}/claude-session-replay.html"`

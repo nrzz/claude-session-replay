@@ -43,7 +43,7 @@ function headerImports(code) {
 
 test("package.json: name, version, module type, bin, engines, scripts, links, license", () => {
   assert.equal(pkg.name, "claude-session-replay");
-  assert.equal(pkg.version, "1.0.1");
+  assert.equal(pkg.version, "1.0.2");
   assert.equal(pkg.type, "module");
   assert.deepEqual(pkg.bin, { "claude-replay": "bin/claude-replay.mjs" });
   assert.equal(pkg.engines.node, ">=18");
@@ -155,7 +155,8 @@ test("the skill is user-only, with a short description, one command and a one-li
   assert.equal(fields.name, "replay");
   assert.equal(fields["disable-model-invocation"], "true");
   assert.ok(fields.description.length < 60, `description is ${fields.description.length} characters`);
-  assert.equal(fields["allowed-tools"], "Bash(node *)");
+  // Only the plugin's own command is pre-approved (quoted and unquoted), never any node command.
+  assert.equal(fields["allowed-tools"], 'Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs" *) Bash(node ${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs *)');
   assert.equal(body.trim(), '!`node "${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs" export ${CLAUDE_SESSION_ID} --redact --out "${CLAUDE_PROJECT_DIR}/claude-session-replay.html"`\n\nReply in one line with the path written.');
   assert.deepEqual(fs.readdirSync(path.join(ROOT, "skills")), ["replay"]);
   assert.ok(text.length < 600, "the skill stays tiny");
