@@ -7,8 +7,8 @@
   },
   "plugins": [
     {
-      "name": "replay",
-      "description": "Export this session as a self-contained HTML replay with secrets redacted (/replay:replay). The claude-replay command also searches, lists and exports any past session, at no token cost.",
+      "name": "replayer",
+      "description": "Export this session as a self-contained HTML replay with secrets redacted (/replayer:replay). The claude-replay command also searches, lists and exports any past session, at no token cost.",
       "author": { "name": "Naresh Prabu" },
       "category": "productivity",
       "source": "./",

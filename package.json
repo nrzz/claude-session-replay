@@ -1,6 +1,6 @@
 {
   "name": "claude-session-replay",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Find anything you discussed in any past Claude Code session, and turn a session into a self-contained HTML replay or Markdown for docs, demos, code reviews and bug reports.",
   "type": "module",
   "bin": {

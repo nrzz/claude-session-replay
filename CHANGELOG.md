@@ -2,6 +2,11 @@
 
 All notable changes to Claude session replay are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] - 2026-10-04
+
+- Renamed the plugin: `replay` is now `replayer`, and the skill is `/replayer:replay`. The old name is one letter from three plugins called relay in Anthropic's plugin directory, and it is another company's GitHub account name. If you installed it as `replay`, uninstall that and install `replayer`.
+- Tests: the speed checks measure CPU time instead of the wall clock, and the user-error check runs in an empty folder, so a busy CI machine or a temp folder named /var/folders/zz/ no longer fails them.
+
 ## [1.0.2] - 2026-10-04
 
 - The skill pre-approves only replay's own command (`node ${CLAUDE_PLUGIN_ROOT}/bin/claude-replay.mjs ...`) instead of any `node` command.
@@ -18,6 +23,7 @@ All notable changes to Claude session replay are written here. The format follow
 
 - First release: list and search across sessions, HTML and Markdown exports with diffs, collapsible tool calls, compactions and per-turn tokens, safe against hostile text, `--redact`, `open`; a plugin.
 
+[1.0.3]: https://github.com/nrzz/claude-session-replay/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/nrzz/claude-session-replay/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/nrzz/claude-session-replay/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nrzz/claude-session-replay/releases/tag/v1.0.0

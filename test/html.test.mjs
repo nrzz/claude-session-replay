@@ -126,7 +126,7 @@ test("print styles: no toolbar, wrapping code, light colours, page breaks kept t
 });
 
 test("the footer says it is a single file and shows the version, with no date so exports repeat exactly", () => {
-  assert.match(html, /<footer>Exported with claude-replay 1\.0\.2 \(github\.com\/nrzz\/claude-session-replay\)\. A single file/);
+  assert.match(html, /<footer>Exported with claude-replay 1\.0\.3 \(github\.com\/nrzz\/claude-session-replay\)\. A single file/);
   assert.equal(replayFile(rich.file, base).text, html, "the same session exports to the same bytes");
 });
 

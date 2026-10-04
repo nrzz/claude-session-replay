@@ -43,7 +43,7 @@ function headerImports(code) {
 
 test("package.json: name, version, module type, bin, engines, scripts, links, license", () => {
   assert.equal(pkg.name, "claude-session-replay");
-  assert.equal(pkg.version, "1.0.2");
+  assert.equal(pkg.version, "1.0.3");
   assert.equal(pkg.type, "module");
   assert.deepEqual(pkg.bin, { "claude-replay": "bin/claude-replay.mjs" });
   assert.equal(pkg.engines.node, ">=18");
@@ -127,9 +127,10 @@ test("CI runs the tests on Linux, Windows and macOS with Node 20, 22 and 24", ()
 
 // --- the plugin -----------------------------------------------------------------------------------
 
-test("plugin.json describes one plugin named replay", () => {
+test("plugin.json describes one plugin named replayer", () => {
   const p = json(".claude-plugin", "plugin.json");
-  assert.equal(p.name, "replay");
+  assert.equal(p.name, "replayer");
+  assert.equal(p.displayName, "Session Replay");
   assert.deepEqual(p.author, { name: "Naresh Prabu" });
   assert.equal(p.license, "MIT");
   assert.equal(p.homepage, "https://github.com/nrzz/claude-session-replay");
@@ -143,7 +144,7 @@ test("marketplace.json offers the plugin from this repository", () => {
   assert.deepEqual(m.owner, { name: "Naresh Prabu" });
   assert.equal(m.plugins.length, 1);
   assert.deepEqual({ ...m.plugins[0], description: "…" }, {
-    name: "replay", description: "…", author: { name: "Naresh Prabu" }, category: "productivity", source: "./", homepage: "https://github.com/nrzz/claude-session-replay",
+    name: "replayer", description: "…", author: { name: "Naresh Prabu" }, category: "productivity", source: "./", homepage: "https://github.com/nrzz/claude-session-replay",
   });
   assert.equal(m.plugins[0].name, json(".claude-plugin", "plugin.json").name);
 });
@@ -175,7 +176,7 @@ test("README follows the family template, in order", () => {
 test("README: two-sentence intro, install commands, a token table, no emoji", () => {
   const intro = readme.split("\n").slice(4).join("\n").split("\n## ")[0].trim();
   assert.equal((intro.match(/[.!?](\s|$)/g) || []).length, 2, `the intro should be two sentences:\n${intro}`);
-  for (const cmd of ["npx -y github:nrzz/claude-session-replay", "/plugin marketplace add nrzz/claude-session-replay", "/plugin install replay@claude-session-replay"]) assert.ok(readme.includes(cmd), cmd);
+  for (const cmd of ["npx -y github:nrzz/claude-session-replay", "/plugin marketplace add nrzz/claude-session-replay", "/plugin install replayer@claude-session-replay"]) assert.ok(readme.includes(cmd), cmd);
   const tokens = readme.split("## What it costs in tokens")[1].split("\n## ")[0];
   assert.match(tokens, /\| Part \| Tokens \|/);
   assert.match(tokens, /\| 0 \|/);

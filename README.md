@@ -12,7 +12,7 @@ None, by design:
 | --- | --- | --- |
 | `claude-replay list`, `search`, `export`, `open` | 0 | A separate Node process. Nothing is sent to the model |
 | The skill in Claude's skill list | 0 | It is user-only (`disable-model-invocation`), so Claude Code leaves it out of the list it gives the model. Its description is 47 characters |
-| `/replay:replay` | about 100, once | The skill is a one-line command plus one instruction. The command prints one line on standard output (and a line of redaction counts on standard error), and Claude replies with one line. This is an estimate from character counts, not a measurement |
+| `/replayer:replay` | about 100, once | The skill is a one-line command plus one instruction. The command prints one line on standard output (and a line of redaction counts on standard error), and Claude replies with one line. This is an estimate from character counts, not a measurement |
 | An export you paste into a conversation | your choice | Nothing reads an export unless you hand it over. `--md --no-tools` makes a long session far smaller first |
 
 ## Install
@@ -30,12 +30,14 @@ npm i -g github:nrzz/claude-session-replay
 claude-replay --help
 ```
 
-As a Claude Code plugin, which adds `/replay:replay` (it exports the session you are in, redacted, to `claude-session-replay.html` in the project folder):
+As a Claude Code plugin, which adds `/replayer:replay` (it exports the session you are in, redacted, to `claude-session-replay.html` in the project folder):
 
 ```text
 /plugin marketplace add nrzz/claude-session-replay
-/plugin install replay@claude-session-replay
+/plugin install replayer@claude-session-replay
 ```
+
+The plugin was called `replay` until 1.0.2. If you installed it under that name, `/plugin uninstall replay@claude-session-replay` and install `replayer`.
 
 ## Use
 
@@ -115,7 +117,7 @@ One file with no network use. [docs/example.html](docs/example.html) is a replay
 
 ## Privacy and redaction
 
-- Reading and exporting happen on your machine. The program makes no network requests, has no telemetry and no account, and sends nothing anywhere. It writes only the exports you ask for: the file you name (or `claude-session-<id>.html` in the current folder), a copy in a new temporary folder for `open`, and `claude-session-replay.html` in the project for `/replay:replay`. It keeps no index, cache or log. The HTML page has a Content-Security-Policy that forbids loading anything (`default-src 'none'`; inline style and script, and `data:` images only), so the page loads and fetches nothing.
+- Reading and exporting happen on your machine. The program makes no network requests, has no telemetry and no account, and sends nothing anywhere. It writes only the exports you ask for: the file you name (or `claude-session-<id>.html` in the current folder), a copy in a new temporary folder for `open`, and `claude-session-replay.html` in the project for `/replayer:replay`. It keeps no index, cache or log. The HTML page has a Content-Security-Policy that forbids loading anything (`default-src 'none'`; inline style and script, and `data:` images only), so the page loads and fetches nothing.
 - Your home folder is shown as `~` in every export. Control codes, colour sequences and text-direction overrides are removed from everything: the conversation, the header's names, and the titles and snippets that `list` and `search` print.
 - Without `--redact` the export is the session as it happened. If it still contains something that looks like a secret, the command warns on standard error and tells you to use `--redact`.
 - With `--redact`, secrets are replaced by `[REDACTED:kind]`: Anthropic, OpenAI, Stripe, GitHub, GitLab, Slack, Google, npm, Hugging Face and SendGrid keys, AWS access keys and secret keys, JWTs, bearer tokens, private keys, Slack and Teams webhooks, passwords in URLs and connection strings, `.env` style `*_SECRET=` and `*_TOKEN=` lines, quoted `password`, `secret`, `api_key`, `token` (and `access_token`, `auth_token`, `refresh_token`) values, and the whole value of any tool input field named like a secret (`password`, `db_password`, `token`, `api_key`, `client_secret`, `authorization` ...). The rules are the ones claude-code-team-sync uses. Paths inside the project become `.` or relative paths (the header still names the project folder), thinking and images are left out, and the counts go to standard error. Secrets are replaced before a long output is cut, so a cut cannot leave half of one behind.
@@ -142,9 +144,9 @@ Checked on 2026-10-04 on Windows 11 with Node 24, against synthetic transcripts 
 - **Hostile text.** Seven payloads (`<script>`, `</script><script>`, `</details>`, `"><img onerror>`, `'><svg onload>`, `javascript:`, `<iframe>`) are put into prompts, answers, thinking, tool inputs, tool output, titles and file names, in plain and redacted exports. For each, the page must be well formed, have exactly one script (ours), have no event-handler attribute and no link other than `http` or `https`, and have the same tags as the same session with harmless text.
 - **Speed.** A search over 300 synthetic sessions of about 40 records each takes about 0.3 seconds, with `--deep` as well; the whole `claude-replay search` command, Node's start included, takes under a second. A 40 MB session is streamed, not loaded.
 - **The example page** was opened once in a browser pane: the filter, the thinking and expand switches, the theme switch, a phone width of 375 pixels with no horizontal scroll, and no console errors.
-- **The plugin**: `claude plugin validate .claude-plugin/plugin.json` and `claude plugin validate .` both pass with Claude Code 2.1.286 and 2.1.289, and on 2026-10-04 the plugin installed from GitHub with `/plugin marketplace add nrzz/claude-session-replay` and `/plugin install replay@claude-session-replay`.
+- **The plugin**: `claude plugin validate .claude-plugin/plugin.json` and `claude plugin validate .` both pass with Claude Code 2.1.286 and 2.1.289, and on 2026-10-04 the plugin installed from GitHub with `/plugin marketplace add nrzz/claude-session-replay` and `/plugin install replay@claude-session-replay` (the plugin's name until 1.0.2; it is `replayer` now).
 
-Not verified yet: exports of real sessions. The linking of a subagent's transcript to its call follows the result's `agentId` and falls back to matching the first prompt, which is an assumption about the format. CI runs every test on Windows, macOS and Linux with Node 20, 22 and 24, and on Linux with Node 18, all green. The `open` command was not run, so a browser was never started by a test; the command it would run for each system is tested. The print layout was not looked at in a print preview, and `/replay:replay` was not run inside a live Claude Code session.
+Not verified yet: exports of real sessions. The linking of a subagent's transcript to its call follows the result's `agentId` and falls back to matching the first prompt, which is an assumption about the format. CI runs every test on Windows, macOS and Linux with Node 20, 22 and 24, and on Linux with Node 18, all green. The `open` command was not run, so a browser was never started by a test; the command it would run for each system is tested. The print layout was not looked at in a print preview, and `/replayer:replay` was not run inside a live Claude Code session.
 
 ## Files
 
@@ -160,7 +162,7 @@ Not verified yet: exports of real sessions. The linking of a subagent's transcri
 | `src/markdown.mjs` | The Markdown export |
 | `src/redact.mjs` | Secret and path redaction |
 | `src/replay.mjs`, `src/util.mjs`, `src/version.mjs` | One call from a file to an export, shared helpers, the version |
-| `skills/replay/SKILL.md` | The user-only skill behind `/replay:replay` |
+| `skills/replay/SKILL.md` | The user-only skill behind `/replayer:replay` |
 | `.claude-plugin/` | The plugin and marketplace manifests |
 | `test/` | The tests (`npm test`), and the synthetic transcript writer they share |
 | `scripts/build-example.mjs` | Builds `docs/example.html` from a made-up session (`npm run build:example`) |
