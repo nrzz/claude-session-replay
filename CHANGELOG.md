@@ -2,6 +2,10 @@
 
 All notable changes to Claude session replay are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+- `list` and `search` take `--since <when>`: hours, days or weeks back (`12h`, `7d`, `2w`) or a date (`YYYY-MM-DD`, local midnight). A session is kept when its last message is at or after that moment; any other value is an error that says what is accepted.
+
 ## [1.0.3] - 2026-10-04
 
 - Renamed the plugin: `replay` is now `replayer`, and the skill is `/replayer:replay`. Anthropic's plugin directory held the old name for a closer look, because it is one letter from plugins called relay. If you installed it as `replay`, uninstall that and install `replayer`.

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { CLI, ROOT, Transcript, SECRETS, world, richSession, simpleSession, run, runCli, tmpDir } from "./helpers.mjs";
-import { openCommand, resolveSession } from "../src/cli.mjs";
+import { openCommand, parseSince, resolveSession } from "../src/cli.mjs";
 import { main } from "../src/cli.mjs";
 
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
@@ -111,6 +111,79 @@ test("list rejects a limit that is not a whole number", async () => {
     assert.equal(r.code, 1, bad);
     assert.match(r.err, /--limit needs a whole number/);
   }
+});
+
+// --- --since -------------------------------------------------------------------------------------
+
+test("parseSince reads hours, days and weeks back from now, and a date as local midnight", () => {
+  const now = Date.parse("2026-10-20T12:00:00.000Z");
+  assert.equal(parseSince(undefined, now), null);
+  assert.equal(parseSince("12h", now), now - 12 * 3600000);
+  assert.equal(parseSince("7d", now), now - 7 * 86400000);
+  assert.equal(parseSince("2w", now), now - 14 * 86400000);
+  assert.equal(parseSince("7D", now), now - 7 * 86400000, "the unit in any case");
+  assert.equal(parseSince("0d", now), now);
+  assert.equal(parseSince("2026-09-01", now), new Date(2026, 8, 1).getTime());
+  assert.equal(parseSince(" 2026-09-01 ", now), new Date(2026, 8, 1).getTime());
+});
+
+test("parseSince rejects anything else with a message that says what it takes", () => {
+  for (const bad of ["", "7", "d", "7m", "7 days", "-7d", "1.5d", "2026-13-01", "2026-02-30", "2026/09/01", "26-09-01", "yesterday"]) {
+    assert.throws(() => parseSince(bad), /--since needs a number of hours, days or weeks \(12h, 7d, 2w\) or a date \(YYYY-MM-DD\)/, JSON.stringify(bad));
+  }
+});
+
+test("list --since keeps the sessions whose last message is at or after that moment", async () => {
+  const ws = world("since-list");
+  simpleSession(ws, { id: "11111111-1111-4222-8333-444444444444", project: "webapp", prompt: "old work", answer: "ok", start: new Date(Date.now() - 30 * 86400000).toISOString() });
+  simpleSession(ws, { id: "22222222-1111-4222-8333-444444444444", project: "webapp", prompt: "recent work", answer: "ok", start: new Date(Date.now() - 2 * 3600000).toISOString() });
+  const cwd = path.join(ws.base, "work", "webapp");
+  const ids = (out) => out.split("\n").filter((l) => /^ {2}[0-9a-f]{8} /.test(l)).map((l) => l.trim().slice(0, 8));
+  assert.deepEqual(ids((await run(["list"], ws, { cwd })).out), ["22222222", "11111111"]);
+  for (const since of ["7d", "12h", "1w", "--since=7d"]) {
+    const argv = since.startsWith("--") ? ["list", since] : ["list", "--since", since];
+    const r = await run(argv, ws, { cwd });
+    assert.equal(r.code, 0, since);
+    assert.deepEqual(ids(r.out), ["22222222"], since);
+    assert.match(r.out.split("\n")[0], /\(1, newest first\)$/, since);
+  }
+  assert.deepEqual(ids((await run(["list", "--since", "5w"], ws, { cwd })).out), ["22222222", "11111111"]);
+  const none = await run(["list", "--since", "1h"], ws, { cwd });
+  assert.equal(none.code, 0);
+  assert.match(none.out, /No Claude Code sessions found for .*webapp since \d{4}-\d\d-\d\d \d\d:\d\d/);
+});
+
+test("list --since a date counts from local midnight, and works with --all", async () => {
+  const r = await run(["list", "--all", "--since", "2026-10-04"], w, { cwd: w.base });
+  assert.equal(r.code, 0);
+  const rows = r.out.split("\n").filter((l) => /^ {2}[0-9a-f]{8} /.test(l)).map((l) => l.trim().slice(0, 8));
+  assert.ok(rows.includes("cccccccc") && rows.includes("dddddddd"), rows.join(" "));
+  assert.ok(!rows.includes("bbbbbbbb"), "a session that ended before the date is left out");
+});
+
+test("search --since leaves out sessions that ended before it, and says so when nothing is left", async () => {
+  const ws = world("since-search");
+  simpleSession(ws, { id: "33333333-1111-4222-8333-444444444444", project: "webapp", prompt: "plan the database migration", answer: "ok", start: "2026-09-01T12:00:00.000Z" });
+  simpleSession(ws, { id: "44444444-1111-4222-8333-444444444444", project: "other", prompt: "run the migration again", answer: "ok", start: "2026-10-10T12:00:00.000Z" });
+  const all = await run(["search", "migration", "--all"], ws, { cwd: ws.base });
+  assert.match(all.out, /^2 sessions in any project with all of: migration/);
+  const recent = await run(["search", "migration", "--since", "2026-10-01", "--all"], ws, { cwd: ws.base });
+  assert.equal(recent.code, 0);
+  assert.match(recent.out, /^1 session in any project since 2026-10-01 00:00 with all of: migration/);
+  assert.match(recent.out, /44444444/);
+  assert.ok(!recent.out.includes("33333333"));
+  const none = await run(["search", "migration", "--since", "2026-10-15", "--all"], ws, { cwd: ws.base });
+  assert.equal(none.code, 1);
+  assert.match(none.out, /No session in any project since 2026-10-15 00:00 has all of: migration/);
+});
+
+test("list and search reject a --since they cannot read, and the other commands do not take it", async () => {
+  for (const argv of [["list", "--since", "soon"], ["search", "x", "--since", "7m"], ["list", "--since"]]) {
+    const r = await run(argv, w, { cwd: rich.root });
+    assert.equal(r.code, 1, argv.join(" "));
+    assert.match(r.err, /--since needs/, argv.join(" "));
+  }
+  assert.match((await run(["export", "aaaaaaaa", "--since", "7d"], w, { cwd: rich.root })).err, /Unknown option --since/);
 });
 
 // --- finding a session ----------------------------------------------------------------------------
