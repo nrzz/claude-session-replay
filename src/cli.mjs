@@ -22,8 +22,8 @@ const AMBIGUOUS_RATIO = 1.5; // the best match must score this many times the ne
 
 const EXPORT_FLAGS = ["redact", "no-tools", "no-thinking", "no-images", "all"];
 const COMMANDS = {
-  list: { run: cmdList, bool: ["all"], value: ["project", "limit"] },
-  search: { run: cmdSearch, bool: ["all", "deep"], value: ["project", "limit"] },
+  list: { run: cmdList, bool: ["all"], value: ["project", "limit", "since"] },
+  search: { run: cmdSearch, bool: ["all", "deep"], value: ["project", "limit", "since"] },
   export: { run: cmdExport, bool: [...EXPORT_FLAGS, "html", "md"], value: ["out", "theme", "max-output", "project"] },
   open: { run: cmdOpen, bool: [...EXPORT_FLAGS, "dry-run"], value: ["theme", "max-output", "project"] },
 };
@@ -65,6 +65,34 @@ export function parseMaxOutput(value) {
   return Math.round(Number(m[1]) * (/^m/i.test(m[2] || "") ? 1024 : 1) * 1024);
 }
 
+// --since: a number of hours, days or weeks back from now (12h, 7d, 2w), or a date (YYYY-MM-DD,
+// local midnight). Returns the moment in milliseconds, or null when the option was not given.
+const SINCE_UNIT_MS = { h: 3600000, d: 86400000, w: 7 * 86400000 };
+export function parseSince(value, now = Date.now()) {
+  if (value === undefined) return null;
+  const text = String(value).trim();
+  const ago = /^(\d+)\s*([hdw])$/i.exec(text);
+  if (ago) return now - Number(ago[1]) * SINCE_UNIT_MS[ago[2].toLowerCase()];
+  const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (day) {
+    const [y, m, d] = day.slice(1).map(Number);
+    const date = new Date(y, m - 1, d);
+    if (date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d) return date.getTime();
+  }
+  return fail(`--since needs a number of hours, days or weeks (12h, 7d, 2w) or a date (YYYY-MM-DD), not "${text}".`);
+}
+
+// Keep the sessions whose last message is at or after the --since moment.
+function sinceFilter(entries, since) {
+  if (since === null) return entries;
+  return entries.filter((e) => {
+    const t = Date.parse(e.updated);
+    return Number.isFinite(t) && t >= since;
+  });
+}
+
+const sinceLabel = (since) => (since === null ? "" : ` since ${localStamp(new Date(since))}`);
+
 function scopeOf(args, ctx) {
   if (args.all) return { all: true, root: "", label: "all projects" };
   const root = args.project ? path.resolve(ctx.cwd, args.project) : ctx.cwd;
@@ -81,8 +109,9 @@ const id8 = (id) => id.slice(0, 8);
 function cmdList(args, ctx) {
   const { c } = ctx;
   const limit = intOption(args.limit, 20, "--limit");
+  const since = parseSince(args.since);
   const scope = scopeOf(args, ctx);
-  const found = findSessions({ env: ctx.env, root: scope.root, all: scope.all });
+  const found = sinceFilter(findSessions({ env: ctx.env, root: scope.root, all: scope.all }), since);
   const rows = [];
   let examined = 0;
   for (const e of found) {
@@ -93,7 +122,7 @@ function cmdList(args, ctx) {
     rows.push({ e, info });
   }
   if (!rows.length) {
-    ctx.say(`No Claude Code sessions found for ${scope.label} (looked in ${projectsDir(ctx.env)}).`);
+    ctx.say(`No Claude Code sessions found for ${scope.label}${sinceLabel(since)} (looked in ${projectsDir(ctx.env)}).`);
     if (!scope.all) ctx.say(c.dim("Use --all to list every project's sessions."));
     return 0;
   }
@@ -133,10 +162,11 @@ function cmdSearch(args, ctx) {
   const words = parseWords(args._);
   if (!words.length) fail("Give one or more words to search for, for example: claude-replay search stripe webhook");
   const limit = intOption(args.limit, 10, "--limit");
+  const since = parseSince(args.since);
   const scope = scopeOf(args, ctx);
-  const entries = findSessions({ env: ctx.env, root: scope.root, all: scope.all });
+  const entries = sinceFilter(findSessions({ env: ctx.env, root: scope.root, all: scope.all }), since);
   const hits = searchSessions(entries, words, { deep: !!args.deep });
-  const where = scope.all ? "any project" : "this project";
+  const where = (scope.all ? "any project" : "this project") + sinceLabel(since);
   if (!hits.length) {
     ctx.say(`No session in ${where} has all of: ${words.join(" ")}${args.deep ? "" : " (--deep also searches tool output)"}.`);
     if (!scope.all) ctx.say(ctx.c.dim("Use --all to search every project."));
@@ -303,8 +333,8 @@ async function cmdOpen(args, ctx) {
 const helpText = (c) => `${c.bold("claude-replay")} ${VERSION}: find anything in your past Claude Code sessions, and turn a session into a replay.
 
 ${c.bold("Find")}
-  claude-replay list [--project <dir> | --all] [--limit 20]
-  claude-replay search <words> [--all] [--deep] [--limit 10]     every word must match
+  claude-replay list [--project <dir> | --all] [--limit 20] [--since 7d]
+  claude-replay search <words> [--all] [--deep] [--limit 10] [--since 7d]     every word must match
 
 ${c.bold("Share")}
   claude-replay export <id|words> [--html | --md] [--out <file>] [--redact]
@@ -314,6 +344,7 @@ ${c.bold("Share")}
 
 <id> is a session id or the first 6 or more characters of one; <words> picks the best matching session.
 Sessions are the ones whose folder is the current project; --all (or --project <dir>) changes that.
+--since keeps sessions whose last message is at or after 12h, 7d or 2w ago, or a date (YYYY-MM-DD).
 Export writes ./claude-session-<id8>.html (or .md); --out - prints to standard output.
 --redact replaces secrets, shortens paths to the project, and leaves out thinking and images.
 Tool output is cut at 20 KB each (--max-output 64 keeps more, 0 keeps everything).

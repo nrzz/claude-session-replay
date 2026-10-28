@@ -46,7 +46,9 @@ Sessions are the ones Claude Code kept under `$CLAUDE_CONFIG_DIR/projects`, or `
 ```bash
 claude-replay list                          # this project's sessions, newest first
 claude-replay list --all --limit 50
+claude-replay list --since 7d               # only sessions active in the last 7 days
 claude-replay search stripe webhook         # every word must match
+claude-replay search migration --since 2026-09-01 --all
 claude-replay search ENOTFOUND --deep --all # also look inside tool output
 claude-replay export 7be317ee               # ./claude-session-7be317ee.html
 claude-replay export "login redirect" --md --out docs/login-bug.md
@@ -83,6 +85,7 @@ Everywhere a session is expected you can give its full id, the first 6 or more c
 | `--all` | list, search, export, open | Every project, not only the current one |
 | `--project <dir>` | list, search, export, open | Another project folder |
 | `--limit <n>` | list (default 20), search (default 10) | How many sessions to show |
+| `--since <when>` | list, search | Only sessions whose last message is at or after that moment: hours, days or weeks back (`12h`, `7d`, `2w`) or a date (`YYYY-MM-DD`, local midnight) |
 | `--deep` | search | Also search tool output and the text of files tools read, wrote or edited |
 | `--html`, `--md` | export | The format. HTML is the default; `--out notes.md` also means Markdown |
 | `--out <file>` | export | Where to write. Default `./claude-session-<id8>.html` (or `.md`); a folder gets that name inside it. `--out -` writes to standard output |
@@ -140,7 +143,7 @@ One file with no network use. [docs/example.html](docs/example.html) is a replay
 
 Checked on 2026-10-04 on Windows 11 with Node 24, against synthetic transcripts in the format of Claude Code 2.1.286. No real transcript was read: the build was not allowed to touch `~/.claude/projects`, and every test uses a throwaway Claude folder.
 
-- **306 automated tests** (`npm test`, about 6 seconds): the transcript reader and the id and title rules, the search and its ranking, id and word resolution, the line diff, Markdown rendering and highlighting, redaction, both exporters, the command line, the plugin and repository files, and a fuzz test that feeds 120 randomly damaged transcripts through the export, listing and search code.
+- **314 automated tests** (`npm test`, about 6 seconds): the transcript reader and the id and title rules, the search and its ranking, id and word resolution, the line diff, Markdown rendering and highlighting, redaction, both exporters, the command line, the plugin and repository files, and a fuzz test that feeds 120 randomly damaged transcripts through the export, listing and search code.
 - **Hostile text.** Seven payloads (`<script>`, `</script><script>`, `</details>`, `"><img onerror>`, `'><svg onload>`, `javascript:`, `<iframe>`) are put into prompts, answers, thinking, tool inputs, tool output, titles and file names, in plain and redacted exports. For each, the page must be well formed, have exactly one script (ours), have no event-handler attribute and no link other than `http` or `https`, and have the same tags as the same session with harmless text.
 - **Speed.** A search over 300 synthetic sessions of about 40 records each takes about 0.3 seconds, with `--deep` as well; the whole `claude-replay search` command, Node's start included, takes under a second. A 40 MB session is streamed, not loaded.
 - **The example page** was opened once in a browser pane: the filter, the thinking and expand switches, the theme switch, a phone width of 375 pixels with no horizontal scroll, and no console errors.
