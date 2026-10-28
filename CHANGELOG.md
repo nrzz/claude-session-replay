@@ -4,7 +4,11 @@ All notable changes to Claude session replay are written here. The format follow
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-28
+
 - `list` and `search` take `--since <when>`: hours, days or weeks back (`12h`, `7d`, `2w`) or a date (`YYYY-MM-DD`, local midnight). A session is kept when its last message is at or after that moment; any other value is an error that says what is accepted.
+- Contributed by [@yoreva-01](https://github.com/yoreva-01) in [#4](https://github.com/nrzz/claude-session-replay/pull/4), for the good first issue [#3](https://github.com/nrzz/claude-session-replay/issues/3).
+- The README's test count is the runner's again: 312 automated tests (314 with the 2 helper files the runner lists). The pull request had written 314.
 
 ## [1.0.3] - 2026-10-04
 
@@ -27,6 +31,7 @@ All notable changes to Claude session replay are written here. The format follow
 
 - First release: list and search across sessions, HTML and Markdown exports with diffs, collapsible tool calls, compactions and per-turn tokens, safe against hostile text, `--redact`, `open`; a plugin.
 
+[1.1.0]: https://github.com/nrzz/claude-session-replay/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/nrzz/claude-session-replay/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/nrzz/claude-session-replay/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/nrzz/claude-session-replay/compare/v1.0.0...v1.0.1

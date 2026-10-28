@@ -1,7 +1,7 @@
 {
   "name": "replayer",
   "displayName": "Session Replay",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Export this Claude Code session as a self-contained HTML replay, with secrets redacted, using /replayer:replay. The same tool searches, lists and exports any past session from a terminal at no token cost.",
   "author": { "name": "Naresh Prabu" },
   "homepage": "https://github.com/nrzz/claude-session-replay",
